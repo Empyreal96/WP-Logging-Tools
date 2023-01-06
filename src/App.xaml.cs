@@ -67,7 +67,8 @@ namespace Logging_Enabler
                     // When the navigation stack isn't restored navigate to the first page,
                     // configuring the new page by passing required information as a navigation
                     // parameter
-                    // rootFrame.Navigate(typeof(MainPage), e.Arguments);
+                    
+                    // First Run checks, if running on architecture other than ARM notify the user (Development purposes only)
                     IPropertySet roamingProperties = ApplicationData.Current.RoamingSettings.Values;
                     Package package = Package.Current;
                     string systemArchitecture = package.Id.Architecture.ToString();
@@ -87,7 +88,6 @@ namespace Logging_Enabler
                         {
                             // The first-time case
                             rootFrame.Navigate(typeof(FirstRunPage), e.Arguments);
-                            // roamingProperties["FirstRunDone"] = bool.TrueString; // Doesn't really matter what
                         }
                     }
                 }

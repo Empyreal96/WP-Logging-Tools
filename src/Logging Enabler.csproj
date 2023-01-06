@@ -146,9 +146,6 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Registry.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
     <EmbeddedResource Include="ndtklib.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
@@ -224,9 +221,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <None Include="Logging Enabler_TemporaryKey.pfx" />
-    <EmbeddedResource Include="Registry.winmd">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ndtklib, Version=255.255.255.255, Culture=neutral, processorArchitecture=MSIL">
@@ -237,9 +231,7 @@
       <HintPath>.\Registry.winmd</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="libraries\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

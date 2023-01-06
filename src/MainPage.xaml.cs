@@ -43,7 +43,6 @@ namespace Logging_Enabler
             this.InitializeComponent();
             AppBusy(true);
             MainWindowPivot.IsEnabled = false;
-            Task.Delay(2000);
             HomeText.Text = "Welcome, this app will let you configure basic logging settings for this device";
             try
             {
@@ -59,8 +58,12 @@ namespace Logging_Enabler
             AppBusy(false);
         }
 
+        /// <summary>
+        /// Check all the values for each logging option
+        /// </summary>
         public async void CheckLoggingStatus()
         {
+            //Create the text files used for temporary storing logs
             await ApplicationData.Current.LocalFolder.CreateFileAsync("cmdstring.txt", CreationCollisionOption.ReplaceExisting);
             await ApplicationData.Current.LocalFolder.CreateFileAsync("ntbtlog.txt", CreationCollisionOption.ReplaceExisting);
             await ApplicationData.Current.LocalFolder.CreateFileAsync("ImgUpd.log", CreationCollisionOption.ReplaceExisting);
@@ -75,11 +78,9 @@ namespace Logging_Enabler
                 Exceptions.ThrowFullError(ex);
                 return;
             }
-            // bootlog                 Yes
-
+            // Boot logging check
             await client.Send("bcdedit /enum {default} > " + $"\"{LocalPath}\\cmdstring.txt\"");
             string results = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
-            //Exceptions.CustomMessage(results);
             if (results.Contains("bootlog                 Yes"))
             {
                 rpc.FileCopy(@"C:\Windows\ntbtlog.txt", $"{LocalPath}\\ntbtlog.txt", 0);
@@ -95,6 +96,8 @@ namespace Logging_Enabler
                 SaveLogBtn.IsEnabled = false;
                 ViewLogBtn.IsEnabled = false;
             }
+
+            // UEFI logging check
             await client.Send("if exist \"C:\\EFIESP\\Windows\\System32\\Boot\\UEFIChargingLogToDisplay.txt\" echo EXISTS > " + $"\"{LocalPath}\\cmdstring.txt\" 2>&1");
             string results2 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
             //Exceptions.CustomMessage(results2);
@@ -111,14 +114,13 @@ namespace Logging_Enabler
                 IsUefiLogEnabled = false;
             }
 
+            // Local crash dumps checks
             try
             {
                 uint DumpType;
                 uint dumpType;
                 uint dumpCount;
                 string dumpfolder;
-                // ERROR: The system was unable to find the specified registry key or value.
-
                 await client.Send("reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\" > " + $"{LocalPath}\\cmdstring.txt");
                 string localDumpsKey = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
                 if (localDumpsKey.Contains("ERROR: The system was unable to find the specified registry key or value."))
@@ -243,9 +245,11 @@ namespace Logging_Enabler
                     DumpsLocationBox.Text = dumpfolder;
                 }
 
+                // copy Image Update logs to Local Folder
                 rpc.FileCopy("C:\\Data\\SystemData\\NonETWLogs\\ImgUpd.log", $"{LocalPath}\\ImgUpd.log", 0);
                 rpc.FileCopy("C:\\Data\\SystemData\\NonETWLogs\\ImgUpd.log.cbs.log", $"{LocalPath}\\ImgUpd.log.cbs.log", 0);
 
+                // set up Toggled events to avoid valuse changing and being written on load
                 BootLogTog.Toggled += BootLogTog_Toggled;
                 UefiTog.Toggled += UefiTog_Toggled;
                 DumpCountCombo.SelectionChanged += DumpCountCombo_SelectionChanged;
@@ -261,7 +265,11 @@ namespace Logging_Enabler
         }
 
 
-
+        /// <summary>
+        /// View Boot Log button 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ViewLogBtn_Click(object sender, RoutedEventArgs e)
         {
             AppBusy(true);
@@ -270,6 +278,11 @@ namespace Logging_Enabler
             AppBusy(false);
         }
 
+        /// <summary>
+        /// Save the Boot Log to user specified location
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void SaveLogBtn_Click(object sender, RoutedEventArgs e)
         {
             AppBusy(true);
@@ -297,6 +310,11 @@ namespace Logging_Enabler
             AppBusy(false);
         }
 
+        /// <summary>
+        /// Boot Log toggled event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void BootLogTog_Toggled(object sender, RoutedEventArgs e)
         {
             AppBusy(true);
@@ -346,6 +364,11 @@ namespace Logging_Enabler
             AppBusy(false);
         }
 
+        /// <summary>
+        /// UEFI logging event toggle
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void UefiTog_Toggled(object sender, RoutedEventArgs e)
         {
             AppBusy(true);
@@ -378,6 +401,11 @@ namespace Logging_Enabler
             AppBusy(false);
         }
 
+        /// <summary>
+        /// Local Dump Type combo box event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void DumpTypeCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             AppBusy(true);
@@ -398,6 +426,11 @@ namespace Logging_Enabler
             AppBusy(false);
         }
 
+        /// <summary>
+        /// Local app dump count changed event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void DumpCountCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             AppBusy(true);
@@ -415,6 +448,11 @@ namespace Logging_Enabler
             AppBusy(false);
         }
 
+        /// <summary>
+        /// Brows for user specified location to store crash dumps
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void CrashBrowsebtn_Click(object sender, RoutedEventArgs e)
         {
             AppBusy(true);
@@ -452,6 +490,11 @@ namespace Logging_Enabler
             AppBusy(false);
         }
 
+        /// <summary>
+        /// Save basic Image Update log to user specified location
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void SaveUpdateBasicLog_Click(object sender, RoutedEventArgs e)
         {
             AppBusy(true);
@@ -481,6 +524,11 @@ namespace Logging_Enabler
             AppBusy(false);
         }
 
+        /// <summary>
+        /// Display the basic Image Update log
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ViewUpdateBasicLog_Click(object sender, RoutedEventArgs e)
         {
             AppBusy(true);
@@ -499,6 +547,11 @@ namespace Logging_Enabler
             AppBusy(false);
         }
 
+        /// <summary>
+        /// Save the advanced Image Update log to user specified location
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void SaveUpdateAdvLog_Click(object sender, RoutedEventArgs e)
         {
             AppBusy(true);
@@ -527,6 +580,11 @@ namespace Logging_Enabler
             AppBusy(false);
         }
 
+        /// <summary>
+        /// (Disabled for now) View the Advanced Image Update log
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ViewUpdateAdvLog_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -542,6 +600,10 @@ namespace Logging_Enabler
             }
         }
 
+        /// <summary>
+        /// Change working status of the progress bar and other UI elements
+        /// </summary>
+        /// <param name="enable"></param>
         private void AppBusy(bool enable)
         {
             if (enable == true)

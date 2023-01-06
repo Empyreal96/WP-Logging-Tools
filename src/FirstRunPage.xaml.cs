@@ -66,7 +66,10 @@ namespace Logging_Enabler
             }
 
         }
-
+        /// <summary>
+        /// Connect function here checks for CMD access
+        /// TODO: add Interop/NDTK checks
+        /// </summary>
         private async void Connect()
         {
             try
@@ -113,9 +116,9 @@ namespace Logging_Enabler
         {
             try
             {
-                //await ApplicationData.Current.LocalFolder.CreateFileAsync("FirstRunComplete.txt", CreationCollisionOption.ReplaceExisting);
                 roamingProperties["FirstRunDone"] = bool.TrueString;
                 client.Disconnect();
+                // The following code is a workaround to a bug. After finishing first run checks the values in MainPage don't get read/load until app restarts
                 var ThrownException = new MessageDialog("App will close in 10 seconds for configuration to load properly, please reopen this app to continue.");
                 ThrownException.Commands.Add(new UICommand("Close"));
                 try
@@ -133,7 +136,7 @@ namespace Logging_Enabler
                 dt.Tick += dt_Tick;
                 dt.Start();
 
-                //this.Frame.Navigate(typeof(MainPage));
+                
             }
             catch (Exception ex)
             {
@@ -147,7 +150,11 @@ namespace Logging_Enabler
             dialogTask.Cancel();
             Application.Current.Exit();
         }
-
+        /// <summary>
+        /// Copy loopback command to enable CMD access for the app
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void LoopCmd_Tapped(object sender, TappedRoutedEventArgs e)
         {
             DataPackage dataPackage = new DataPackage();
