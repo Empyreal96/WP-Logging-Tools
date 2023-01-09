@@ -42,14 +42,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Invoke-BSOD-arm.exe" size="6128">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Invoke-BSOD-arm.exe" size="5616">
       <assemblyIdentity name="Invoke-BSOD-arm" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>W5E1TbHJa8R0Cm50sZmjhHqjL7rwqoewFudUwCfNOjU=</dsig:DigestValue>
+        <dsig:DigestValue>C6hIllc1zTFxig9Tg405eaG0JaU1QbnTvqLMLAi6gao=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

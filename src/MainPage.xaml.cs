@@ -1168,7 +1168,7 @@ namespace Logging_Enabler
             if (results3.Contains("The operation completed successfully."))
             {
 
-                CrashDmpLocation.Text = SelectedCrashDumpPath;
+                CrashDmpUserLocation.Text = SelectedCrashDumpPath;
             }
             else
             {
@@ -1184,6 +1184,7 @@ namespace Logging_Enabler
         /// <param name="e"></param>
         private async void InvokeBSODBtn_Click(object sender, RoutedEventArgs e)
         {
+            
             MessageDialog showDialog = new MessageDialog("You are about to invoke a System Crash, Are you sure?");
             showDialog.Commands.Add(new UICommand("Yes")
             {
@@ -1197,9 +1198,17 @@ namespace Logging_Enabler
             showDialog.DefaultCommandIndex = 0;
             showDialog.CancelCommandIndex = 1;
             var result = await showDialog.ShowAsync();
+            
             if ((int)result.Id == 0)
             {
-                await client.Send($"{LocalPath}\\Tools\\InvokeBSOD\\TailoredDeploy.exe");
+               
+                await client.Send($"C:\\Data\\users\\public\\documents\\WPLoggingTools\\TailoredDeploy.exe > \"{LocalPath}\\cmdstring.txt\"");
+                string result1 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                if (result1.Contains("is not recognized as an internal or external command"))
+                {
+                    Exceptions.CustomMessage("Files not found, make sure you placed the \"WPLoggingTools\" folder into \"C:\\Data\\Users\\Public\\Documents\" ");
+                }
+                 
             }
             else
             {

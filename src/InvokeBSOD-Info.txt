@@ -1,0 +1,1 @@
+If you want to be able to Invoke BSOD, copy "WPLoggingTools" to "C:\Data\Users\Public\Documents" on your device

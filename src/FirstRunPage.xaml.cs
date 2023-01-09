@@ -97,8 +97,8 @@ namespace Logging_Enabler
 
             if (IsCMDPresent == true)
             {
-                CMDpresent.Foreground = new SolidColorBrush(Windows.UI.Colors.Green);
-                CMDpresent.Text = "Checks Completed Successfully\nCopying files needed";
+                
+                CMDpresent.Text = "Copying files needed";
                 try
                 {
                     // Copy the Kernel Debug files used when enabling debugging
@@ -119,6 +119,9 @@ namespace Logging_Enabler
                     rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kdnet_uart16550.dll.dll", "C:\\Windows\\System32\\kdnet_uart16550.dll.dll", 0);
                     rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd.dll", "C:\\Windows\\System32\\kd.dll", 0);
 
+                    //Copy InvokeBSOD app
+                    
+                    CMDpresent.Foreground = new SolidColorBrush(Windows.UI.Colors.Green);
                 }
                 catch (Exception ex)
                 {
