@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ndtklib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -36,7 +37,7 @@ namespace Logging_Enabler
         ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
         static CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         TelnetClient client = new TelnetClient(TimeSpan.FromSeconds(3), cancellationTokenSource.Token);
-
+        NRPC rpc = new NRPC();
 
         public FirstRunPage()
         {
@@ -45,15 +46,22 @@ namespace Logging_Enabler
                 this.InitializeComponent();
 
 
-
-
-
-
-
                 progbar.IsEnabled = true;
 
                 CMDpresent.Text = "Checking capabilities, please wait...";
-
+                try
+                {
+                    rpc.Initialize();
+                }
+                catch (Exception ex)
+                {
+                    Exceptions.CustomMessage("Error Initilizing Interop Services, Are you Interop Unlocked?");
+                    CMDpresent.Foreground = new SolidColorBrush(Windows.UI.Colors.Red);
+                    CMDpresent.Text = "Interop Service Failed";
+                    progbar.IsEnabled = false;
+                    progbar.IsIndeterminate = false;
+                    return;
+                }
 
                 Connect();
                 progbar.IsEnabled = false;
@@ -90,7 +98,34 @@ namespace Logging_Enabler
             if (IsCMDPresent == true)
             {
                 CMDpresent.Foreground = new SolidColorBrush(Windows.UI.Colors.Green);
-                CMDpresent.Text = "CMD Access Found!";
+                CMDpresent.Text = "Checks Completed Successfully\nCopying files needed";
+                try
+                {
+                    // Copy the Kernel Debug files used when enabling debugging
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd.dll", "C:\\Windows\\System32\\kd.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kdusb.dll", "C:\\Windows\\System32\\kdusb.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kdstub.dll", "C:\\Windows\\System32\\kdstub.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kdcom.dll", "C:\\Windows\\System32\\kdcom.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_10df.dll", "C:\\Windows\\System32\\kd_02_10df.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_10ec.dll", "C:\\Windows\\System32\\kd_02_10ec.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_14e4.dll", "C:\\Windows\\System32\\kd_02_14e4.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_1969.dll", "C:\\Windows\\System32\\kd_02_1969.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_19a2.dll", "C:\\Windows\\System32\\kd_02_19a2.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_1af4.dll", "C:\\Windows\\System32\\kd_02_1af4.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_8086.dll", "C:\\Windows\\System32\\kd_02_8086.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_07_1415.dll", "C:\\Windows\\System32\\kd_07_1415.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_8003_5143.dll", "C:\\Windows\\System32\\kd_8003_5143.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kdnet.dll", "C:\\Windows\\System32\\kdnet.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kdnet_uart16550.dll.dll", "C:\\Windows\\System32\\kdnet_uart16550.dll.dll", 0);
+                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd.dll", "C:\\Windows\\System32\\kd.dll", 0);
+
+                }
+                catch (Exception ex)
+                {
+                    Exceptions.ThrowFullError(ex);
+                }
+                // Test if all KD flles are needed
+                CMDpresent.Text = "Setup completed";
                 FinishBtn.IsEnabled = true;
                 progbar.IsEnabled = false;
                 progbar.IsIndeterminate = false;
@@ -129,14 +164,14 @@ namespace Logging_Enabler
                 catch (TaskCanceledException)
                 {
 
-                    
+
                 }
                 DispatcherTimer dt = new DispatcherTimer();
                 dt.Interval = TimeSpan.FromSeconds(10);
                 dt.Tick += dt_Tick;
                 dt.Start();
 
-                
+
             }
             catch (Exception ex)
             {

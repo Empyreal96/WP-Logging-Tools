@@ -29,7 +29,13 @@ namespace Logging_Enabler
         /// </summary>
         public App()
         {
-            this.InitializeComponent();
+            try
+            {
+                this.InitializeComponent();
+            } catch (Exception ex)
+            {
+                Exceptions.ThrowFullError(ex);
+            }
             this.Suspending += OnSuspending;
         }
 

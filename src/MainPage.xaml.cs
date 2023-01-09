@@ -1,5 +1,4 @@
 ﻿using ndtklib;
-using Registry;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,6 +19,9 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Registry;
+using System.Diagnostics;
+using Windows.UI.Popups;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -35,15 +37,25 @@ namespace Logging_Enabler
         static CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         TelnetClient client = new TelnetClient(TimeSpan.FromSeconds(1), cancellationTokenSource.Token);
         bool IsBootlogEnabled;
+        bool IsKDUSBSet;
         bool IsUefiLogEnabled;
         NRPC rpc = new NRPC();
+        string kdDeviceName;
+
 
         public MainPage()
         {
-            this.InitializeComponent();
+            try
+            {
+                this.InitializeComponent();
+            }
+            catch (Exception ex)
+            {
+                Exceptions.ThrowFullError(ex);
+            }
             AppBusy(true);
             MainWindowPivot.IsEnabled = false;
-            HomeText.Text = "Welcome, this app will let you configure basic logging settings for this device";
+            HomeText.Text = "Welcome, this app will let you configure basic logging and debugging settings for this device.\n\nThis app is prerelease and is subject to change, and issues contact @Empyreal96 on Github";
             try
             {
                 rpc.Initialize();
@@ -54,8 +66,77 @@ namespace Logging_Enabler
                 Exceptions.CustomMessage("Error initializing Interop Capabilities");
             }
 
+            GetDeviceStatus();
             CheckLoggingStatus();
             AppBusy(false);
+        }
+
+
+        /// <summary>
+        /// Retrieve Device Status information
+        /// </summary>
+        public void GetDeviceStatus()
+        {
+            string PhoneFirmwareRevision;
+            string PhoneFriendlyName;
+            string PhoneHardwareRevision;
+            string PhoneHardwareVariant;
+            string PhoneManufacturer;
+            string PhoneManufacturerModelName;
+            string PhoneMobileOperatorDisplayName;
+            string PhoneMobileOperatorName;
+            string PhoneRadioSoftwareRevision;
+            string PhoneSOCVersion;
+            string BuildLabEx;
+            string ComputerName;
+
+            string SystemStartOptions;
+            string SystemBootDevice;
+            string FirmwareBootDevice;
+
+
+
+
+
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\Platform\\DeviceTargetingInfo", "PhoneFirmwareRevision", out PhoneFirmwareRevision);
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\Platform\\DeviceTargetingInfo", "PhoneFriendlyName", out PhoneFriendlyName);
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\Platform\\DeviceTargetingInfo", "PhoneHardwareRevision", out PhoneHardwareRevision);
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\Platform\\DeviceTargetingInfo", "PhoneHardwareVariant", out PhoneHardwareVariant);
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\Platform\\DeviceTargetingInfo", "PhoneManufacturer", out PhoneManufacturer);
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\Platform\\DeviceTargetingInfo", "PhoneManufacturerModelName", out PhoneManufacturerModelName);
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\Platform\\DeviceTargetingInfo", "PhoneMobileOperatorDisplayName", out PhoneMobileOperatorDisplayName);
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\Platform\\DeviceTargetingInfo", "PhoneMobileOperatorName", out PhoneMobileOperatorName);
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\Platform\\DeviceTargetingInfo", "PhoneRadioSoftwareRevision", out PhoneRadioSoftwareRevision);
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\Platform\\DeviceTargetingInfo", "PhoneSOCVersion", out PhoneSOCVersion);
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\Software\\Microsoft", "BuildLabEx", out BuildLabEx);
+
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\ControlSet001\\Control", "SystemStartOptions", out SystemStartOptions);
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\ControlSet001\\Control", "SystemBootDevice", out SystemBootDevice);
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\ControlSet001\\Control", "FirmwareBootDevice", out FirmwareBootDevice);
+
+            NativeRegistry.ReadString(RegistryHive.HKLM, "SYSTEM\\ControlSet001\\Control\\ComputerName\\ActiveComputerName", "ComputerName", out ComputerName);
+
+            //string[] SystemStartOptionsArray = SystemStartOptions.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+
+
+
+            DeviceStatsBox.Text =
+        $"{PhoneManufacturer}\n" +
+        $"{PhoneManufacturerModelName}\n" +
+        $"Hardware Revision: {PhoneHardwareRevision}\n" +
+        $"Firmware Revision: {PhoneFirmwareRevision}\n" +
+        $"Radio Software: {PhoneRadioSoftwareRevision}\n" +
+        $"SOC: MSM{PhoneSOCVersion}\n" +
+        $"Operator: {PhoneMobileOperatorName}({PhoneMobileOperatorDisplayName})\n" +
+        $"Phone Name: {PhoneFriendlyName}\n" +
+        $"Computer Name: {ComputerName}\n" +
+        $"Build: {BuildLabEx}\n" +
+        $"Boot Device: {SystemBootDevice}\n" +
+        $"Firmware Device: {FirmwareBootDevice}\n\n" +
+        $"Boot Options:\n" +
+        $"{SystemStartOptions.Replace(" ", "\n")}\n";
+
         }
 
         /// <summary>
@@ -78,24 +159,71 @@ namespace Logging_Enabler
                 Exceptions.ThrowFullError(ex);
                 return;
             }
-            // Boot logging check
+
+
+            // Boot logging and debug setting check
             await client.Send("bcdedit /enum {default} > " + $"\"{LocalPath}\\cmdstring.txt\"");
             string results = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
-            if (results.Contains("bootlog                 Yes"))
+            string[] kdenumarray = results.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string str in kdenumarray)
             {
-                rpc.FileCopy(@"C:\Windows\ntbtlog.txt", $"{LocalPath}\\ntbtlog.txt", 0);
-                IsBootlogEnabled = true;
-                BootLogTog.IsOn = true;
-                SaveLogBtn.IsEnabled = true;
-                ViewLogBtn.IsEnabled = true;
+                string tempstr = str.Replace(" ", "");
+                if (tempstr.Contains("bootlog"))
+                {
+                    string btlogresult = tempstr.Replace("bootlog", "");
+                    if (btlogresult.Contains("Yes"))
+                    {
+                        rpc.FileCopy(@"C:\Windows\ntbtlog.txt", $"{LocalPath}\\ntbtlog.txt", 0);
+                        IsBootlogEnabled = true;
+                        BootLogTog.IsOn = true;
+                        SaveLogBtn.IsEnabled = true;
+                        ViewLogBtn.IsEnabled = true;
+                    }
+                    else
+                    {
+                        IsBootlogEnabled = false;
+                        BootLogTog.IsOn = false;
+                        SaveLogBtn.IsEnabled = false;
+                        ViewLogBtn.IsEnabled = false;
+                    }
+                }
+                if (tempstr.Contains("debug"))
+                {
+                    string dbgresult = tempstr.Replace("debug", "");
+                    if (dbgresult.Contains("Yes"))
+                    {
+                        KDToggle.IsOn = true;
+                    }
+                    else
+                    {
+                        KDToggle.IsOn = false;
+                    }
+                }
+                if (tempstr.Contains("dbgtransport"))
+                {
+                    string dbgresult = tempstr.Replace("dbgtransport", "");
+                    if (dbgresult.Contains("kdusb.dll"))
+                    {
+                        IsKDUSBSet = true;
+                    }
+                }
             }
-            else
+            await client.Send("bcdedit /dbgsettings > " + $"\"{LocalPath}\\cmdstring.txt\"");
+            string kdresults = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+            string[] kdresultsarray = kdresults.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string res in kdresultsarray)
             {
-                IsBootlogEnabled = false;
-                BootLogTog.IsOn = false;
-                SaveLogBtn.IsEnabled = false;
-                ViewLogBtn.IsEnabled = false;
+                string tempstr = res.Replace(" ", "");
+                if (tempstr.Contains("targetname"))
+                {
+                    string dbgresult = tempstr.Replace("targetname", "");
+                    kdDeviceName = dbgresult;
+                }
+
             }
+
+            KDName.Text = kdDeviceName;
+
 
             // UEFI logging check
             await client.Send("if exist \"C:\\EFIESP\\Windows\\System32\\Boot\\UEFIChargingLogToDisplay.txt\" echo EXISTS > " + $"\"{LocalPath}\\cmdstring.txt\" 2>&1");
@@ -105,14 +233,13 @@ namespace Logging_Enabler
             {
                 UefiTog.IsOn = true;
                 IsUefiLogEnabled = true;
-
-
             }
             else
             {
                 UefiTog.IsOn = false;
                 IsUefiLogEnabled = false;
             }
+
 
             // Local crash dumps checks
             try
@@ -128,12 +255,10 @@ namespace Logging_Enabler
                     dumpType = 0;
                     dumpCount = 0;
                     dumpfolder = "";
-                    
+
                 }
                 else
                 {
-
-
                     await client.Send("reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\" /v DumpType > " + $"{LocalPath}\\cmdstring.txt");
                     string dumptypeResult = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
                     if (dumptypeResult.Contains("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps"))
@@ -156,16 +281,13 @@ namespace Logging_Enabler
                                 DumpTypeCombo.SelectedIndex = 0;
                                 break;
                         }
-
                     }
                     else
                     {
                         DumpTypeCombo.SelectedIndex = 0;
                     }
 
-
-
-                   await client.Send("reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\" /v DumpCount > " + $"{LocalPath}\\cmdstring.txt");
+                    await client.Send("reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\" /v DumpCount > " + $"{LocalPath}\\cmdstring.txt");
                     string dumpcountResult = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
                     if (dumpcountResult.Contains("DumpCount    REG_DWORD"))
                     {
@@ -173,7 +295,7 @@ namespace Logging_Enabler
                         string tempname = dumpcountResult.Replace("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps", "");
                         string tempname2 = tempname.Replace("DumpCount    REG_DWORD", "");
                         string tempresult = Regex.Replace(tempname2, @"\s+", "");
-                       // Exceptions.CustomMessage(tempresult);
+                        // Exceptions.CustomMessage(tempresult);
 
                         switch (tempresult)
                         {
@@ -237,23 +359,116 @@ namespace Logging_Enabler
                         dumpfolder = "";
                     }
 
-
-
-
-
-
                     DumpsLocationBox.Text = dumpfolder;
                 }
+
+                // Windows Crash Dumps
+                bool IsCrashDumpLocationValueCreated = false;
+                await client.Send("reg query \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" > " + $"{LocalPath}\\cmdstring.txt");
+                string[] CrashDumpValues = File.ReadAllLines($"{LocalPath}\\cmdstring.txt");
+                foreach (string res in CrashDumpValues)
+                {
+                    string CrashValue = res.Replace(" ", "");
+                    if (CrashValue.Contains("AlwaysKeepMemoryDumpREG_DWORD"))
+                    {
+                        string tempValue = CrashValue.Replace("AlwaysKeepMemoryDumpREG_DWORD", "");
+                        switch (tempValue)
+                        {
+                            case "0x0":
+                                CrashDmpAlwaysKeep.IsChecked = false;
+                                break;
+                            case "0x1":
+                                CrashDmpAlwaysKeep.IsChecked = true;
+                                break;
+                            default:
+                                CrashDmpAlwaysKeep.IsChecked = false;
+                                break;
+                        }
+                    }
+                    if (CrashValue.Contains("CrashDumpEnabledREG_DWORD"))
+                    {
+                        string tempValue = CrashValue.Replace("CrashDumpEnabledREG_DWORD", "");
+                        switch (tempValue)
+                        {
+                            case "0x0":
+                                CrashDmpTypeCombo.SelectedIndex = 0;
+                                break;
+                            case "0x1":
+                                CrashDmpTypeCombo.SelectedIndex = 1;
+                                CrashDmpToggle.IsOn = true;
+                                break;
+                            case "0x2":
+                                CrashDmpTypeCombo.SelectedIndex = 2;
+                                CrashDmpToggle.IsOn = true;
+                                break;
+                            case "0x3":
+                                CrashDmpTypeCombo.SelectedIndex = 3;
+                                CrashDmpToggle.IsOn = true;
+                                break;
+                            case "0x7":
+                                CrashDmpTypeCombo.SelectedIndex = 4;
+                                CrashDmpToggle.IsOn = true;
+                                break;
+                            default:
+                                CrashDmpTypeCombo.SelectedIndex = 3;
+                                CrashDmpToggle.IsOn = true;
+                                break;
+                        }
+                    }
+                    if (CrashValue.Contains("CrashDumpEnabledValueREG_DWORD"))
+                    {
+                        string tempValue = CrashValue.Replace("CrashDumpEnabledValueREG_DWORD", "");
+                        if (tempValue.Contains("0x1"))
+                        {
+                            // Need to clarify this is true, this value was taken from W10M WPAK cab "Microsoft.MS_ENABLEFULLDUMP.MSN.MainOS"
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                    if (CrashValue.Contains("OverwriteREG_DWORD"))
+                    {
+                        string tempValue = CrashValue.Replace("OverwriteREG_DWORD", "");
+                        if (tempValue.Contains("0x1"))
+                        {
+                            CrashDmpOverwrite.IsChecked = true;
+                        }
+                        else
+                        {
+                            CrashDmpOverwrite.IsChecked = false;
+                        }
+                    }
+                    if (CrashValue.Contains("DumpFileREG_SZ"))
+                    {
+                        string tempValue = CrashValue.Replace("DumpFileREG_SZ", "");
+                        CrashDmpUserLocation.Text = tempValue;
+                        IsCrashDumpLocationValueCreated = true;
+                    }
+
+
+                }
+
+
 
                 // copy Image Update logs to Local Folder
                 rpc.FileCopy("C:\\Data\\SystemData\\NonETWLogs\\ImgUpd.log", $"{LocalPath}\\ImgUpd.log", 0);
                 rpc.FileCopy("C:\\Data\\SystemData\\NonETWLogs\\ImgUpd.log.cbs.log", $"{LocalPath}\\ImgUpd.log.cbs.log", 0);
+
+
+
+
 
                 // set up Toggled events to avoid valuse changing and being written on load
                 BootLogTog.Toggled += BootLogTog_Toggled;
                 UefiTog.Toggled += UefiTog_Toggled;
                 DumpCountCombo.SelectionChanged += DumpCountCombo_SelectionChanged;
                 DumpTypeCombo.SelectionChanged += DumpTypeCombo_SelectionChanged;
+                KDToggle.Toggled += KDToggle_Toggled;
+                CrashDmpToggle.Toggled += CrashDmpToggle_Toggled;
+                CrashDmpAlwaysKeep.Checked += CrashDmpAlwaysKeep_Checked;
+                CrashDmpOverwrite.Checked += CrashDmpOverwrite_Checked;
+                CrashDmpTypeCombo.SelectionChanged += CrashDmpTypeCombo_SelectionChanged;
                 MainWindowPivot.IsEnabled = true;
             }
             catch (Exception ex)
@@ -263,6 +478,298 @@ namespace Logging_Enabler
 
             }
         }
+
+        private async void CrashDmpTypeCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            AppBusy(true);
+            int value = CrashDmpTypeCombo.SelectedIndex;
+            switch (value)
+            {
+                case 0:
+                    await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v CrashDumpEnabled /t REG_DWORD /d 0 /f > \"{LocalPath}\\cmdstring.txt\"");
+                    string results0 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                    if (results0.Contains("The operation completed successfully."))
+                    {
+                        CrashDmpTypeCombo.IsEnabled = false;
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage("Error setting Dump Type");
+                    }
+                    // Need to check if this value is really needed
+                    /* await client.Send("reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v CrashDumpEnabledValue /t REG_DWORD /d 0 /f > \"{LocalPath}\\cmdstring.txt\"");
+                     string results = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                     if (results.Contains("The operation completed successfully."))
+                     {
+                         CrashDmpTypeCombo.IsEnabled = false;
+                     }
+                     else
+                     {
+                         Exceptions.CustomMessage("Error setting Dump Type");
+                     } */
+                    break;
+                case 1:
+                    await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v CrashDumpEnabled /t REG_DWORD /d 1 /f > \"{LocalPath}\\cmdstring.txt\"");
+                    string results1 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                    if (results1.Contains("The operation completed successfully."))
+                    {
+                        CrashDmpTypeCombo.IsEnabled = true;
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage("Error setting Dump Type");
+                    }
+                    break;
+                case 2:
+                    await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v CrashDumpEnabled /t REG_DWORD /d 2 /f > \"{LocalPath}\\cmdstring.txt\"");
+                    string results2 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                    if (results2.Contains("The operation completed successfully."))
+                    {
+                        CrashDmpTypeCombo.IsEnabled = true;
+
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage("Error setting Dump Type");
+                    }
+                    break;
+                case 3:
+                    await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v CrashDumpEnabled /t REG_DWORD /d 3 /f > \"{LocalPath}\\cmdstring.txt\"");
+                    string results3 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                    if (results3.Contains("The operation completed successfully."))
+                    {
+                        CrashDmpTypeCombo.IsEnabled = true;
+
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage("Error setting Dump Type");
+                    }
+                    break;
+                case 4:
+                    await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v CrashDumpEnabled /t REG_DWORD /d 7 /f > \"{LocalPath}\\cmdstring.txt\"");
+                    string results4 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                    if (results4.Contains("The operation completed successfully."))
+                    {
+                        CrashDmpTypeCombo.IsEnabled = true;
+
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage("Error setting Dump Type");
+                    }
+                    break;
+            }
+            AppBusy(false);
+        }
+
+        private async void CrashDmpOverwrite_Checked(object sender, RoutedEventArgs e)
+        {
+            AppBusy(true);
+            if (CrashDmpOverwrite.IsChecked == true)
+            {
+                await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v Overwrite /t REG_DWORD /d 1 /f > \"{LocalPath}\\cmdstring.txt\"");
+                string results = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                if (results.Contains("The operation completed successfully."))
+                {
+
+                }
+                else
+                {
+                    Exceptions.CustomMessage("Error changing Overwrite setting");
+                }
+
+            }
+            else
+            {
+                await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v Overwrite /t REG_DWORD /d 0 /f > \"{LocalPath}\\cmdstring.txt\"");
+                string results = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                if (results.Contains("The operation completed successfully."))
+                {
+
+                }
+                else
+                {
+                    Exceptions.CustomMessage("Error changing Overwrite setting");
+                }
+            }
+            AppBusy(false);
+
+        }
+
+        private async void CrashDmpAlwaysKeep_Checked(object sender, RoutedEventArgs e)
+        {
+            AppBusy(true);
+
+            if (CrashDmpAlwaysKeep.IsChecked == true)
+            {
+                await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v AlwaysKeepMemoryDump /t REG_DWORD /d 1 /f > \"{LocalPath}\\cmdstring.txt\"");
+                string results = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                if (results.Contains("The operation completed successfully."))
+                {
+
+                }
+                else
+                {
+                    Exceptions.CustomMessage("Error changing AlwaysKeepMemoryDump setting");
+                }
+
+            }
+            else
+            {
+                await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v AlwaysKeepMemoryDump /t REG_DWORD /d 0 /f > \"{LocalPath}\\cmdstring.txt\"");
+                string results = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                if (results.Contains("The operation completed successfully."))
+                {
+
+                }
+                else
+                {
+                    Exceptions.CustomMessage("Error changing AlwaysKeepMemoryDump setting");
+                }
+            }
+            AppBusy(false);
+
+        }
+
+        private async void CrashDmpToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            AppBusy(true);
+
+            if (CrashDmpToggle.IsOn)
+            {
+                int value = CrashDmpTypeCombo.SelectedIndex;
+                int val;
+                switch (value)
+                {
+                    case 0:
+                        val = 0;
+                        break;
+                    case 1:
+                        val = 1;
+                        break;
+                    case 2:
+                        val = 2;
+                        break;
+                    case 3:
+                        val = 3;
+                        break;
+                    case 4:
+                        val = 7;
+                        break;
+                    default:
+                        val = 3;
+                        break;
+                }
+                CrashDmpTypeCombo.IsEnabled = true;
+                await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v CrashDumpEnabled /t REG_DWORD /d {val} /f > \"{LocalPath}\\cmdstring.txt\"");
+                string results = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                if (results.Contains("The operation completed successfully."))
+                {
+                    CrashDmpTypeCombo.IsEnabled = false;
+                }
+                else
+                {
+                    Exceptions.CustomMessage("Error enabling Crash Dump");
+                }
+            }
+            else
+            {
+                CrashDmpTypeCombo.IsEnabled = false;
+                await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v CrashDumpEnabled /t REG_DWORD /d 0 /f > \"{LocalPath}\\cmdstring.txt\"");
+                string results = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                if (results.Contains("The operation completed successfully."))
+                {
+                    CrashDmpTypeCombo.IsEnabled = false;
+                }
+                else
+                {
+                    Exceptions.CustomMessage("Error disabling Crash Dumps");
+                }
+                //Need to check if this value is really needed
+                /* await client.Send("reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v CrashDumpEnabledValue /t REG_DWORD /d 0 /f > \"{LocalPath}\\cmdstring.txt\"");
+                 string results = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                 if (results.Contains("The operation completed successfully."))
+                 {
+                     CrashDmpTypeCombo.IsEnabled = false;
+                 }
+                 else
+                 {
+                     Exceptions.CustomMessage("Error setting Dump Type");
+                 } */
+            }
+            AppBusy(false);
+
+        }
+
+
+
+        /// <summary>
+        /// Send the commands to enable KD
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void KDToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            AppBusy(true);
+            if (KDToggle.IsOn)
+            {
+                try
+                {
+
+                    if (IsKDUSBSet == false)
+                    {
+                        await client.Send("bcdedit /set {default} dbgtransport kdusb.dll > " + $"\"{LocalPath}\\cmdstring.txt\"");
+                        string result2 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+
+                        if (result2.Contains("The operation completed successfully."))
+                        {
+
+                        }
+                        else
+                        {
+                            Exceptions.CustomMessage("Error enabling USB as Debug Transport Method");
+                        }
+
+                    }
+                    await client.Send("bcdedit /set {default} debug on > " + $"\"{LocalPath}\\cmdstring.txt\"");
+                    string result = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+
+                    if (result.Contains("The operation completed successfully."))
+                    {
+                        Exceptions.CustomMessage("Reboot is required for settings to take effect");
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage("Error enabling Debugging");
+                    }
+
+
+                }
+                catch (Exception ex)
+                {
+                    Exceptions.ThrowFullError(ex); // Change to custom message soon 
+                }
+            }
+            else
+            {
+                await client.Send("bcdedit /set {default} debug off > " + $"\"{LocalPath}\\cmdstring.txt\"");
+                string result = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+
+                if (result.Contains("The operation completed successfully."))
+                {
+                    Exceptions.CustomMessage("Reboot is required for settings to take effect");
+
+                }
+                else
+                {
+                    Exceptions.CustomMessage("Error disabling Debugging");
+                }
+            }
+            AppBusy(false);
+        }
+
+
 
 
         /// <summary>
@@ -440,7 +947,8 @@ namespace Logging_Enabler
             if (results.Contains("The operation completed successfully."))
             {
 
-            } else
+            }
+            else
             {
                 Exceptions.CustomMessage("Error setting value for DumpCount\n\n" + results);
                 AppBusy(false);
@@ -601,6 +1109,107 @@ namespace Logging_Enabler
         }
 
         /// <summary>
+        /// Set the Dubug target name for the device
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void KDSetName_Click(object sender, RoutedEventArgs e)
+        {
+            AppBusy(true);
+            if (KDName.Text.ToLower().Contains("debug"))
+            {
+                Exceptions.CustomMessage("using \"debug\" in the device name is not allowed");
+            }
+            else
+            {
+
+                if (KDName.Text == "")
+                {
+                    KDName.Text = "WINMOB";
+                }
+                await client.Send($"bcdedit /dbgsettings usb targetname:{KDName.Text} > " + $"\"{LocalPath}\\cmdstring.txt\"");
+                string result = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+
+                if (result.Contains("The operation completed successfully."))
+                {
+
+                }
+                else
+                {
+                    Exceptions.CustomMessage("Error setting device debug name");
+                }
+            }
+            AppBusy(false);
+        }
+
+
+
+
+
+
+
+
+
+        /// <summary>
+        /// Choose location for Windows Crash Dumps
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void CrashDmpChooseLocation_Click(object sender, RoutedEventArgs e)
+        {
+            FolderPicker folder = new FolderPicker();
+            folder.FileTypeFilter.Add(".dmp");
+            StorageFolder storageFolder = await folder.PickSingleFolderAsync();
+            string SelectedCrashDumpPath = $"{storageFolder.Path}\\MEMORY.DMP";
+
+
+            await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v DumpFile /t REG_SZ /d \"{SelectedCrashDumpPath}\" /f > \"{LocalPath}\\cmdstring.txt\"");
+            string results3 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+            if (results3.Contains("The operation completed successfully."))
+            {
+
+                CrashDmpLocation.Text = SelectedCrashDumpPath;
+            }
+            else
+            {
+                Exceptions.CustomMessage("Error setting Dump File path");
+            }
+
+        }
+
+        /// <summary>
+        /// Invoke a BSOD to test Crash Dumps
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void InvokeBSODBtn_Click(object sender, RoutedEventArgs e)
+        {
+            MessageDialog showDialog = new MessageDialog("You are about to invoke a System Crash, Are you sure?");
+            showDialog.Commands.Add(new UICommand("Yes")
+            {
+                Id = 0
+            });
+            showDialog.Commands.Add(new UICommand("No")
+            {
+                Id = 1
+            });
+            showDialog.Title = "Invoke BSOD";
+            showDialog.DefaultCommandIndex = 0;
+            showDialog.CancelCommandIndex = 1;
+            var result = await showDialog.ShowAsync();
+            if ((int)result.Id == 0)
+            {
+                await client.Send($"{LocalPath}\\Tools\\InvokeBSOD\\TailoredDeploy.exe");
+            }
+            else
+            {
+                
+            }
+
+        }
+
+
+        /// <summary>
         /// Change working status of the progress bar and other UI elements
         /// </summary>
         /// <param name="enable"></param>
@@ -611,7 +1220,8 @@ namespace Logging_Enabler
                 AppBusyBar.IsEnabled = true;
                 AppBusyBar.Visibility = Visibility.Visible;
                 AppBusyBar.IsIndeterminate = true;
-            } else
+            }
+            else
             {
                 AppBusyBar.IsEnabled = false;
                 AppBusyBar.Visibility = Visibility.Collapsed;

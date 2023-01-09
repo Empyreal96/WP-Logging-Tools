@@ -29,6 +29,20 @@
                     </RelativePanel>
                 </Grid>
             </PivotItem>
+            <PivotItem Header="Device Status">
+                <Grid>
+                    <RelativePanel>
+                        <ScrollViewer RelativePanel.AlignLeftWithPanel="True"
+                                      RelativePanel.AlignRightWithPanel="True"
+                                      RelativePanel.AlignTopWithPanel="True"
+                                      RelativePanel.AlignBottomWithPanel="True">
+                            <TextBlock x:Name="DeviceStatsBox" 
+                                       ScrollViewer.VerticalScrollMode="Enabled"
+                                       TextWrapping="Wrap"/>
+                        </ScrollViewer>
+                    </RelativePanel>
+                </Grid>
+            </PivotItem>
             <PivotItem Header="Boot">
                 <Grid>
                     <RelativePanel>
@@ -187,6 +201,93 @@
                                    Margin="5,0,5,0"/>
                     </Border>
                 </RelativePanel>
+                </Grid>
+            </PivotItem>
+            <PivotItem Header="Debug">
+                <Grid>
+                    <RelativePanel>
+                        <TextBlock x:Name="KDInfoBox"
+                                   RelativePanel.AlignLeftWithPanel="True"
+                                   RelativePanel.AlignRightWithPanel="True"
+                                   Text="Here you can enable Kernel Debugging over USB, This will require WinDBG and will disable MTP. Note disable Kernel Debug to allow MTP connections"
+                                   TextWrapping="Wrap" Margin="5,0,5,0"/>
+                        <ToggleSwitch x:Name="KDToggle"
+                                      RelativePanel.Below="KDInfoBox" Margin="5,5,0,0"
+                                      />
+                        <TextBlock x:Name="KDNameLable"
+                                   RelativePanel.Below="KDToggle"
+                                   RelativePanel.AlignLeftWithPanel="True"
+                                   Text="Device Name:" Margin="5,5,0,0"
+                                   />
+                        <TextBox x:Name="KDName"
+                                 PlaceholderText="WINMOB"
+                                 RelativePanel.Below="KDToggle"
+                                 RelativePanel.RightOf="KDNameLable"
+                                 RelativePanel.LeftOf="KDSetName" Margin="10,0,5,0"/>
+                        <Button x:Name="KDSetName"
+                                Content="Set"
+                                RelativePanel.AlignRightWithPanel="True"
+                                RelativePanel.Below="KDToggle"
+                                Click="KDSetName_Click"/>
+                    </RelativePanel>
+                </Grid>
+            </PivotItem>
+            <PivotItem Header="Crash Dumps">
+                <Grid>
+                    <RelativePanel>
+                        <TextBlock x:Name="CrashDmpHeader"
+                                   RelativePanel.AlignLeftWithPanel="True"
+                                   RelativePanel.AlignRightWithPanel="True"
+                                   Text="When Windows unexpectedly restarts or crashes, you can control if a memory dump is created to help debug why the crash appened. This requires a dump viewer like WinDbg."
+                                   TextWrapping="Wrap"/>
+                        <ToggleSwitch x:Name="CrashDmpToggle"
+                                      RelativePanel.Below="CrashDmpHeader" Margin="5,5,0,0"/>
+                        <TextBlock x:Name="CrashDmpType"
+                                   RelativePanel.Below="CrashDmpToggle"
+                                   Text="Dump Type:" Margin="5,5,0,0"/>
+                        <ComboBox x:Name="CrashDmpTypeCombo"
+                                  HorizontalAlignment="Stretch"
+                                  RelativePanel.Below="CrashDmpToggle"
+                                  RelativePanel.RightOf="CrashDmpType"
+                                  RelativePanel.AlignRightWithPanel="True" Margin="10,0,5,0">
+                            <ComboBoxItem Content="None"/>
+                            <ComboBoxItem Content="Complete"/>
+                            <ComboBoxItem Content="Kernel"/>
+                            <ComboBoxItem Content="Small"/>
+                            <ComboBoxItem Content="Automatic"/>
+                        </ComboBox>
+                        <CheckBox x:Name="CrashDmpAlwaysKeep" 
+                                  Content="Always keep dump file"
+                                  RelativePanel.Below="CrashDmpTypeCombo" Margin="5,10,0,0"/>
+                        <CheckBox x:Name="CrashDmpOverwrite"
+                                  Content="Overwrite dump files"
+                                  RelativePanel.Below="CrashDmpAlwaysKeep"
+                                  Margin="5,10,0,0"/>
+                        <TextBlock x:Name="CrashDmpLocation"
+                                   RelativePanel.Below="CrashDmpOverwrite"
+                                   Text="MEMORY.DMP save location:" Margin="5,10,0,0"/>
+                        <Button x:Name="CrashDmpChooseLocation"
+                                RelativePanel.Below="CrashDmpOverwrite"
+                                RelativePanel.RightOf="CrashDmpLocation"
+                                RelativePanel.AlignRightWithPanel="True"
+                                Content="Choose"
+                                Click="CrashDmpChooseLocation_Click"
+                                HorizontalAlignment="Right" Margin="0,5,5,0" Background="{x:Null}" Foreground="{ThemeResource SystemAccentColor}"/>
+                        <TextBox x:Name="CrashDmpUserLocation"
+                                 RelativePanel.Below="CrashDmpLocation"
+                                 RelativePanel.AlignLeftWithPanel="True"
+                                 RelativePanel.AlignRightWithPanel="True" Margin="5,8,5,0"/>
+
+
+                        <Button x:Name="InvokeBSODBtn"
+                                RelativePanel.AlignBottomWithPanel="True"
+                                RelativePanel.AlignLeftWithPanel="True"
+                                RelativePanel.AlignRightWithPanel="True"
+                                HorizontalAlignment="Stretch"
+                                Click="InvokeBSODBtn_Click"
+                                FontWeight="Bold"
+                                Content="Invoke BSOD" Background="{x:Null}" Foreground="#FFFF0202"/>
+                    </RelativePanel>
                 </Grid>
             </PivotItem>
             <PivotItem Header="Updates">
