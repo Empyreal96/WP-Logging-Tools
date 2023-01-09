@@ -3,9 +3,9 @@
 This tool allows you to enable and view logs and debugging features for a few different aspects of Windows 10 Mobile
 
 ## What's New?
-*Note this is just an update to update this repo with my offline repo*
+*Note this is just an update to update this repo with my offline repo, an "experimental" build has been released for those curious*
 - Enable Windows Crash Dumps page (Not fully implimented yet, I believe it needs some extra values to be set)
-- Invoke BSOD to test crash dumps (Currently have issues with running exe from this app, it runs in CMD Injector fine)
+- Invoke BSOD to test crash dumps (User needs to copy required files to phone storage, see InvokeBSOD-info.txt)
 - Device Status page for basic dev info (WIP)
 
 ## Types of logging available?
