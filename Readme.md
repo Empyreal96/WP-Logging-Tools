@@ -5,7 +5,7 @@ This tool allows you to enable and view logs and debugging features for a few di
 ## What's New?
 *Note this is just an update to update this repo with my offline repo*
 - Enable Windows Crash Dumps page (Not fully implimented yet, I believe it needs some extra values to be set)
-- Invoke BSOD to test crash dumps
+- Invoke BSOD to test crash dumps (Currently have issues with running exe from this app, it runs in CMD Injector fine)
 - Device Status page for basic dev info (WIP)
 
 ## Types of logging available?
