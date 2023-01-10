@@ -192,51 +192,51 @@
     <Content Include="Assets\Wide310x150Logo.scale-125.png" />
     <Content Include="Assets\Wide310x150Logo.scale-150.png" />
     <Content Include="Assets\Wide310x150Logo.scale-400.png" />
-    <EmbeddedResource Include="KDFiles\kd.dll">
+    <Content Include="KDFiles\kd.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kdcom.dll">
+    </Content>
+    <Content Include="KDFiles\kdcom.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kdnet.dll">
+    </Content>
+    <Content Include="KDFiles\kdnet.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kdnet_uart16550.dll">
+    </Content>
+    <Content Include="KDFiles\kdnet_uart16550.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kdstub.dll">
+    </Content>
+    <Content Include="KDFiles\kdstub.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kdusb.dll">
+    </Content>
+    <Content Include="KDFiles\kdusb.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kd_02_10df.dll">
+    </Content>
+    <Content Include="KDFiles\kd_02_10df.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kd_02_10ec.dll">
+    </Content>
+    <Content Include="KDFiles\kd_02_10ec.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kd_02_14e4.dll">
+    </Content>
+    <Content Include="KDFiles\kd_02_14e4.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kd_02_1969.dll">
+    </Content>
+    <Content Include="KDFiles\kd_02_1969.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kd_02_19a2.dll">
+    </Content>
+    <Content Include="KDFiles\kd_02_19a2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kd_02_1af4.dll">
+    </Content>
+    <Content Include="KDFiles\kd_02_1af4.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kd_02_8086.dll">
+    </Content>
+    <Content Include="KDFiles\kd_02_8086.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kd_07_1415.dll">
+    </Content>
+    <Content Include="KDFiles\kd_07_1415.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="KDFiles\kd_8003_5143.dll">
+    </Content>
+    <Content Include="KDFiles\kd_8003_5143.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+    </Content>
     <Content Include="InvokeBSOD-Info.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -271,6 +271,12 @@
     <EmbeddedResource Include="ndtklib.winmd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <Content Include="EFIESPDump\wpdmp.efi">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EFIESPDump\wpdmp.log">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Logging Enabler_TemporaryKey.pfx" />
     <EmbeddedResource Include="Registry.winmd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

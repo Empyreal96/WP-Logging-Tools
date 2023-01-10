@@ -55,7 +55,6 @@ namespace Logging_Enabler
             }
             AppBusy(true);
             MainWindowPivot.IsEnabled = false;
-            HomeText.Text = "Welcome, this app will let you configure basic logging and debugging settings for this device.\n\nThis app is prerelease and is subject to change, and issues contact @Empyreal96 on Github";
             try
             {
                 rpc.Initialize();
@@ -65,6 +64,7 @@ namespace Logging_Enabler
             {
                 Exceptions.CustomMessage("Error initializing Interop Capabilities");
             }
+            HomeText.Text = "Welcome, this app will let you configure basic logging and debugging settings for this device.\n\nThis app is prerelease and is subject to change, and issues contact @Empyreal96 on Github";
 
             GetDeviceStatus();
             CheckLoggingStatus();
@@ -144,13 +144,14 @@ namespace Logging_Enabler
         /// </summary>
         public async void CheckLoggingStatus()
         {
+            try
+            {
             //Create the text files used for temporary storing logs
             await ApplicationData.Current.LocalFolder.CreateFileAsync("cmdstring.txt", CreationCollisionOption.ReplaceExisting);
             await ApplicationData.Current.LocalFolder.CreateFileAsync("ntbtlog.txt", CreationCollisionOption.ReplaceExisting);
             await ApplicationData.Current.LocalFolder.CreateFileAsync("ImgUpd.log", CreationCollisionOption.ReplaceExisting);
             await ApplicationData.Current.LocalFolder.CreateFileAsync("ImgUpd.log.cbs.log", CreationCollisionOption.ReplaceExisting);
-            try
-            {
+            
                 await client.Connect();
 
             }
@@ -160,8 +161,9 @@ namespace Logging_Enabler
                 return;
             }
 
-
-            // Boot logging and debug setting check
+            try
+            {
+                // Boot logging and debug setting check
             await client.Send("bcdedit /enum {default} > " + $"\"{LocalPath}\\cmdstring.txt\"");
             string results = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
             string[] kdenumarray = results.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
@@ -174,6 +176,7 @@ namespace Logging_Enabler
                     if (btlogresult.Contains("Yes"))
                     {
                         rpc.FileCopy(@"C:\Windows\ntbtlog.txt", $"{LocalPath}\\ntbtlog.txt", 0);
+                        await client.Send("del C:\\Windows\\ntbtlog.txt /F /Q");
                         IsBootlogEnabled = true;
                         BootLogTog.IsOn = true;
                         SaveLogBtn.IsEnabled = true;
@@ -221,7 +224,10 @@ namespace Logging_Enabler
                 }
 
             }
-
+            if (kdDeviceName == null)
+                {
+                    kdDeviceName = "WINMOB";
+                }
             KDName.Text = kdDeviceName;
 
 
@@ -242,18 +248,17 @@ namespace Logging_Enabler
 
 
             // Local crash dumps checks
-            try
-            {
-                uint DumpType;
-                uint dumpType;
-                uint dumpCount;
+            
+                //uint DumpType;
+                //uint dumpType;
+                //uint dumpCount;
                 string dumpfolder;
                 await client.Send("reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\" > " + $"{LocalPath}\\cmdstring.txt");
                 string localDumpsKey = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
                 if (localDumpsKey.Contains("ERROR: The system was unable to find the specified registry key or value."))
                 {
-                    dumpType = 0;
-                    dumpCount = 0;
+                   // dumpType = 0;
+                   // dumpCount = 0;
                     dumpfolder = "";
 
                 }
@@ -355,7 +360,7 @@ namespace Logging_Enabler
                     }
                     else
                     {
-                        Exceptions.CustomMessage(dumpfolderResult + "\nNot found in cmdstring.txt");
+                        //Exceptions.CustomMessage(dumpfolderResult + "\nDumpFolder Not found in cmdstring.txt");
                         dumpfolder = "";
                     }
 
@@ -442,11 +447,33 @@ namespace Logging_Enabler
                     if (CrashValue.Contains("DumpFileREG_SZ"))
                     {
                         string tempValue = CrashValue.Replace("DumpFileREG_SZ", "");
-                        CrashDmpUserLocation.Text = tempValue;
+                        if (tempValue != null)
+                        {
+                            CrashDmpUserLocation.Text = tempValue.Replace("MEMORY.DMP", "");
+                        }
                         IsCrashDumpLocationValueCreated = true;
                     }
 
 
+
+                }
+                await client.Send("reg query \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\\LiveKernelReports\" > " + $"{LocalPath}\\cmdstring.txt");
+                string[] CrashDumpValues1 = File.ReadAllLines($"{LocalPath}\\cmdstring.txt");
+                foreach (string str in CrashDumpValues1)
+                {
+                    string CrashValue = str.Replace(" ", "");
+                    if (CrashValue.Contains("DeleteLiveMiniDumpsREG_DWORD"))
+                    {
+                        string tempValue = CrashValue.Replace("DeleteLiveMiniDumpsREG_DWORD", "");
+                        if (tempValue.Contains("0x1"))
+                        {
+                            LiveKernelReports.IsChecked = false;
+                        } else
+                        {
+                            LiveKernelReports.IsChecked = true;
+
+                        }
+                    } 
                 }
 
 
@@ -469,6 +496,7 @@ namespace Logging_Enabler
                 CrashDmpAlwaysKeep.Checked += CrashDmpAlwaysKeep_Checked;
                 CrashDmpOverwrite.Checked += CrashDmpOverwrite_Checked;
                 CrashDmpTypeCombo.SelectionChanged += CrashDmpTypeCombo_SelectionChanged;
+                LiveKernelReports.Checked += LiveKernelReports_Checked;
                 MainWindowPivot.IsEnabled = true;
             }
             catch (Exception ex)
@@ -477,6 +505,40 @@ namespace Logging_Enabler
                 AppBusy(false);
 
             }
+        }
+
+        private async void LiveKernelReports_Checked(object sender, RoutedEventArgs e)
+        {
+            AppBusy(true);
+            if (LiveKernelReports.IsChecked == true)
+            {
+                await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\\LiveKernelReports\" /v DeleteLiveMiniDumps /t REG_DWORD /d 0 /f > \"{LocalPath}\\cmdstring.txt\"");
+                string results = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                if (results.Contains("The operation completed successfully."))
+                {
+
+                }
+                else
+                {
+                    Exceptions.CustomMessage("Error changing LiveKernelReports setting");
+                }
+
+            }
+            else
+            {
+                await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\\LiveKernelReports\" /v DeleteLiveMiniDumps /t REG_DWORD /d 1 /f > \"{LocalPath}\\cmdstring.txt\"");
+                string results = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+                if (results.Contains("The operation completed successfully."))
+                {
+
+                }
+                else
+                {
+                    Exceptions.CustomMessage("Error changing LiveKernelReports setting");
+                }
+            }
+            AppBusy(false);
+
         }
 
         private async void CrashDmpTypeCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1160,19 +1222,52 @@ namespace Logging_Enabler
             FolderPicker folder = new FolderPicker();
             folder.FileTypeFilter.Add(".dmp");
             StorageFolder storageFolder = await folder.PickSingleFolderAsync();
-            string SelectedCrashDumpPath = $"{storageFolder.Path}\\MEMORY.DMP";
+            string SelectedCrashDumpPath = $"{storageFolder.Path}";
 
 
-            await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v DumpFile /t REG_SZ /d \"{SelectedCrashDumpPath}\" /f > \"{LocalPath}\\cmdstring.txt\"");
+            await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v DumpFile /t REG_SZ /d \"{SelectedCrashDumpPath}\\MEMORY.DMP\" /f > \"{LocalPath}\\cmdstring.txt\"");
             string results3 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
             if (results3.Contains("The operation completed successfully."))
+            {
+
+                //CrashDmpUserLocation.Text = SelectedCrashDumpPath;
+            }
+            else
+            {
+                Exceptions.CustomMessage("Error setting DumpFile");
+            }
+            await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v DedicatedDumpFile /t REG_SZ /d \"{SelectedCrashDumpPath}\\DedicatedDump.sys\" /f > \"{LocalPath}\\cmdstring.txt\"");
+            string results4 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+            if (results4.Contains("The operation completed successfully."))
+            {
+
+                //CrashDmpUserLocation.Text = SelectedCrashDumpPath;
+            }
+            else
+            {
+                Exceptions.CustomMessage("Error setting DedicatedDumpFile");
+            }
+            await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\\LiveKernelReports\" /v LiveKernelReportsPath /t REG_SZ /d \"\\??\\{SelectedCrashDumpPath}\" /f > \"{LocalPath}\\cmdstring.txt\"");
+            string results5 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+            if (results5.Contains("The operation completed successfully."))
+            {
+
+               // CrashDmpUserLocation.Text = SelectedCrashDumpPath;
+            }
+            else
+            {
+                Exceptions.CustomMessage("Error setting LiveKernelReportsPath");
+            }
+            await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v MinidumpDir /t REG_SZ /d \"{SelectedCrashDumpPath}\\Minidump\" /f > \"{LocalPath}\\cmdstring.txt\"");
+            string results6 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
+            if (results6.Contains("The operation completed successfully."))
             {
 
                 CrashDmpUserLocation.Text = SelectedCrashDumpPath;
             }
             else
             {
-                Exceptions.CustomMessage("Error setting Dump File path");
+                Exceptions.CustomMessage("Error setting LiveKernelReportsPath");
             }
 
         }
@@ -1236,6 +1331,11 @@ namespace Logging_Enabler
                 AppBusyBar.Visibility = Visibility.Collapsed;
                 AppBusyBar.IsIndeterminate = false;
             }
+        }
+
+        private void DmpLocationInfo_Click(object sender, RoutedEventArgs e)
+        {
+            Exceptions.CustomMessage("This will set the location for all types of Crash Dumps (Minidumps, Kernel Reports, Full Cash Dumps)");
         }
     }
 }

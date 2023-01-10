@@ -97,30 +97,151 @@ namespace Logging_Enabler
 
             if (IsCMDPresent == true)
             {
-                
+
                 CMDpresent.Text = "Copying files needed";
                 try
                 {
                     // Copy the Kernel Debug files used when enabling debugging
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd.dll", "C:\\Windows\\System32\\kd.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kdusb.dll", "C:\\Windows\\System32\\kdusb.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kdstub.dll", "C:\\Windows\\System32\\kdstub.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kdcom.dll", "C:\\Windows\\System32\\kdcom.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_10df.dll", "C:\\Windows\\System32\\kd_02_10df.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_10ec.dll", "C:\\Windows\\System32\\kd_02_10ec.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_14e4.dll", "C:\\Windows\\System32\\kd_02_14e4.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_1969.dll", "C:\\Windows\\System32\\kd_02_1969.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_19a2.dll", "C:\\Windows\\System32\\kd_02_19a2.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_1af4.dll", "C:\\Windows\\System32\\kd_02_1af4.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_02_8086.dll", "C:\\Windows\\System32\\kd_02_8086.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_07_1415.dll", "C:\\Windows\\System32\\kd_07_1415.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd_8003_5143.dll", "C:\\Windows\\System32\\kd_8003_5143.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kdnet.dll", "C:\\Windows\\System32\\kdnet.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kdnet_uart16550.dll.dll", "C:\\Windows\\System32\\kdnet_uart16550.dll.dll", 0);
-                    rpc.FileCopy($"{ApplicationData.Current.LocalFolder.Path}\\KDFiles\\kd.dll", "C:\\Windows\\System32\\kd.dll", 0);
 
-                    //Copy InvokeBSOD app
+                    StorageFolder InstallationFolder = Windows.ApplicationModel.Package.Current.InstalledLocation;
+                    StorageFile file = await InstallationFolder.GetFileAsync("KDFiles\\kd.dll");
+                    if (File.Exists(file.Path))
+                    {
+                        rpc.FileCopy($"{file.Path}", "C:\\Windows\\System32\\kd.dll", 0);
+                    } else
+                    {
+                        Exceptions.CustomMessage($"{file.Path} not found");
+                    }
+                    StorageFile file1 = await InstallationFolder.GetFileAsync("KDFiles\\kdusb.dll");
+                    if (File.Exists(file1.Path))
+                    {
+                        rpc.FileCopy($"{file1.Path}", "C:\\Windows\\System32\\kdusb.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file1.Path} not found");
+                    }
+                    StorageFile file2 = await InstallationFolder.GetFileAsync("KDFiles\\kdstub.dll");
+                    if (File.Exists(file2.Path))
+                    {
+                        rpc.FileCopy($"{file2.Path}", "C:\\Windows\\System32\\kdstub.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file2.Path} not found");
+                    }
+                    StorageFile file3 = await InstallationFolder.GetFileAsync("KDFiles\\kdcom.dll");
+                    if (File.Exists(file3.Path))
+                    {
+                        rpc.FileCopy($"{file3.Path}", "C:\\Windows\\System32\\kdcom.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file3.Path} not found");
+                    }
+                    StorageFile file4 = await InstallationFolder.GetFileAsync("KDFiles\\kd_02_10df.dll");
+                    if (File.Exists(file4.Path))
+                    {
+                        rpc.FileCopy($"{file4.Path}", "C:\\Windows\\System32\\kd_02_10df.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file4.Path} not found");
+                    }
+                    StorageFile file5 = await InstallationFolder.GetFileAsync("KDFiles\\kd_02_10ec.dll");
+                    if (File.Exists(file5.Path))
+                    {
+                        rpc.FileCopy($"{file5.Path}l", "C:\\Windows\\System32\\kd_02_10ec.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file5.Path} not found");
+                    }
+                    StorageFile file6 = await InstallationFolder.GetFileAsync("KDFiles\\kd_02_14e4.dll");
+                    if (File.Exists(file6.Path))
+                    {
+                        rpc.FileCopy($"{file6.Path}", "C:\\Windows\\System32\\kd_02_14e4.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file6.Path} not found");
+                    }
+                    StorageFile file7 = await InstallationFolder.GetFileAsync("KDFiles\\kd_02_1969.dll");
+                    if (File.Exists(file7.Path))
+                    {
+                        rpc.FileCopy($"{file7.Path}", "C:\\Windows\\System32\\kd_02_1969.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file7.Path} not found");
+                    }
+                    StorageFile file8 = await InstallationFolder.GetFileAsync("KDFiles\\kd_02_19a2.dll");
+                    if (File.Exists(file8.Path))
+                    {
+                        rpc.FileCopy($"{file8.Path}", "C:\\Windows\\System32\\kd_02_19a2.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file8.Path} not found");
+                    }
+                    StorageFile file9 = await InstallationFolder.GetFileAsync("KDFiles\\kd_02_1af4.dll");
+                    if (File.Exists(file9.Path))
+                    {
+                        rpc.FileCopy($"{file9.Path}", "C:\\Windows\\System32\\kd_02_1af4.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file9.Path} not found");
+                    }
+                    StorageFile file10 = await InstallationFolder.GetFileAsync("KDFiles\\kd_02_8086.dll");
+                    if (File.Exists(file10.Path))
+                    {
+                        rpc.FileCopy($"{file10.Path}", "C:\\Windows\\System32\\kd_02_8086.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file10.Path} not found");
+                    }
+                    StorageFile file11 = await InstallationFolder.GetFileAsync("KDFiles\\kd_07_1415.dll");
+                    if (File.Exists(file11.Path))
+                    {
+                        rpc.FileCopy($"{file11.Path}", "C:\\Windows\\System32\\kd_07_1415.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file11.Path} not found");
+                    }
+                    StorageFile file12 = await InstallationFolder.GetFileAsync("KDFiles\\kd_8003_5143.dll");
+                    if (File.Exists(file12.Path))
+                    {
+                        rpc.FileCopy($"{file12.Path}", "C:\\Windows\\System32\\kd_8003_5143.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file12.Path} not found");
+                    }
+                    StorageFile file13 = await InstallationFolder.GetFileAsync("KDFiles\\kdnet.dll");
+                    if (File.Exists(file13.Path))
+                    {
+                        rpc.FileCopy($"{file13.Path}", "C:\\Windows\\System32\\kdnet.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file13.Path} not found");
+                    }
+                    StorageFile file14 = await InstallationFolder.GetFileAsync("KDFiles\\kdnet_uart16550.dll");
+                    if (File.Exists(file14.Path))
+                    {
+                        rpc.FileCopy($"{file14.Path}", "C:\\Windows\\System32\\kdnet_uart16550.dll", 0);
+                    }
+                    else
+                    {
+                        Exceptions.CustomMessage($"{file14.Path} not found");
+                    }
                     
+                    // Eventually add the Preboot crash dump files
+
+
                     CMDpresent.Foreground = new SolidColorBrush(Windows.UI.Colors.Green);
                 }
                 catch (Exception ex)
@@ -166,7 +287,7 @@ namespace Logging_Enabler
                 }
                 catch (TaskCanceledException)
                 {
-
+                    return;
 
                 }
                 DispatcherTimer dt = new DispatcherTimer();

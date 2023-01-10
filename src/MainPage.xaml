@@ -49,7 +49,7 @@
                         <TextBlock 
                             x:Name="BootLogInfo"
                             TextWrapping="Wrap"
-                            Text="Boot Logging displays all files and drives that are loaded and not loaded on Windows Boot" Margin="5,0,13,0"/>
+                            Text="Boot Logging displays all files and drives that are loaded and not loaded on Windows Boot. Note: the log file doesn't get overwritten on each boot so you may have several boot logs in one big file, This app will delete the log after viewing it to help avoid this" Margin="5,0,13,0"/>
                         <ToggleSwitch
                             x:Name="BootLogTog"
                             Margin="0,20,0,0"
@@ -265,7 +265,12 @@
                                   Margin="5,10,0,0"/>
                         <TextBlock x:Name="CrashDmpLocation"
                                    RelativePanel.Below="CrashDmpOverwrite"
-                                   Text="MEMORY.DMP save location:" Margin="5,10,0,0"/>
+                                   Text="Dump save location:" Margin="5,10,0,0"/>
+                        <Button x:Name="DmpLocationInfo"
+                                RelativePanel.Below="CrashDmpOverwrite"
+                                RelativePanel.RightOf="CrashDmpLocation"
+                                Click="DmpLocationInfo_Click"
+                                Content="?" Background="{x:Null}" Foreground="{ThemeResource SystemAccentColor}" Margin="0,5,0,0"/>
                         <Button x:Name="CrashDmpChooseLocation"
                                 RelativePanel.Below="CrashDmpOverwrite"
                                 RelativePanel.RightOf="CrashDmpLocation"
@@ -277,7 +282,10 @@
                                  RelativePanel.Below="CrashDmpLocation"
                                  RelativePanel.AlignLeftWithPanel="True"
                                  RelativePanel.AlignRightWithPanel="True" Margin="5,8,5,0"/>
-
+                        <CheckBox x:Name="LiveKernelReports"
+                                  Content="Live Kernel Reports"
+                                  RelativePanel.Below="CrashDmpUserLocation"
+                                  Margin="5,10,0,0"/>
 
                         <Button x:Name="InvokeBSODBtn"
                                 RelativePanel.AlignBottomWithPanel="True"
@@ -286,7 +294,7 @@
                                 HorizontalAlignment="Stretch"
                                 Click="InvokeBSODBtn_Click"
                                 FontWeight="Bold"
-                                Content="Invoke BSOD" Background="{x:Null}" Foreground="#FFFF0202"/>
+                                Content="Invoke BSOD" Background="{x:Null}" Foreground="#FFFF0202" Margin="0,0,0,5"/>
                     </RelativePanel>
                 </Grid>
             </PivotItem>
