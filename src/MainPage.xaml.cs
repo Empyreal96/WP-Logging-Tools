@@ -1258,6 +1258,8 @@ namespace Logging_Enabler
             {
                 Exceptions.CustomMessage("Error setting LiveKernelReportsPath");
             }
+
+            await storageFolder.CreateFolderAsync("Minidump");
             await client.Send($"reg add \"HKLM\\SYSTEM\\ControlSet001\\Control\\CrashControl\" /v MinidumpDir /t REG_SZ /d \"{SelectedCrashDumpPath}\\Minidump\" /f > \"{LocalPath}\\cmdstring.txt\"");
             string results6 = File.ReadAllText($"{LocalPath}\\cmdstring.txt");
             if (results6.Contains("The operation completed successfully."))

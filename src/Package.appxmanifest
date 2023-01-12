@@ -10,7 +10,7 @@
   <Identity
     Name="WindowsLoggingTools"
     Publisher="CN=Empyreal96"
-    Version="0.1.39.0" />
+    Version="0.1.40.0" />
 
   <mp:PhoneIdentity PhoneProductId="bfa661cf-f050-4597-8f87-a1ad67b39962" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
